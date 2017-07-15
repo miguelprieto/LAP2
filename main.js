@@ -1,31 +1,21 @@
-
 'use strict';
 import Expo from 'expo';
-
+import { Constants, MapView } from 'expo';
 import React, {Component} from 'react';
 import ReactNative from 'react-native';
-//const firebase = require('firebase');
 import * as firebase from 'firebase';
 const StatusBar = require('./components/StatusBar');
 const ActionButton = require('./components/ActionButton');
 const ListItem = require('./components/ListItem');
+const Mapa = require('./components/Mapa');
 const styles = require('./styles.js')
-import { NavigationProvider, StackNavigation } from '@expo/ex-navigation';
-//import { FontAwesome } from '@expo/vector-icons';
+import { AppRegistry,} from 'react-native';
 import { StackNavigator } from 'react-navigation';
-//import Router from './navigation/Router';
 import cacheAssetsAsync from './utilities/cacheAssetsAsync';
+const { ListView, StyleSheet, Text, View, TouchableHighlight,
+  AlertIOS, Image, Button,Linking, Dimensions} = ReactNative;
 
-
-const {
-  ListView,
-  StyleSheet,
-  Text,
-  View,
-  TouchableHighlight,
-  AlertIOS,
-} = ReactNative;
-
+var items = [];
 
 var config = {
     apiKey: "AIzaSyDLpzGQIOR8ikZ208vTO2aErrY5RTTYEoA",
@@ -38,8 +28,11 @@ var config = {
   const firebaseApp=firebase.initializeApp(config);
 
 
-class Firebase extends React.Component {
-  static navigationOptions = {title: 'My Favourites Places',};
+class HomeFire extends React.Component {
+  static navigationOptions = {
+    title: 'My Favourites Places',
+  };
+
 
   constructor(props) {
     super(props);
@@ -59,11 +52,19 @@ class Firebase extends React.Component {
     itemsRef.on('value', (snap) => {
 
       // get children as an array
-      var items = [];
+      //var items = [];
       snap.forEach((child) => {
         items.push({
+          //_key: child.key,
           title: child.val().title,
-          _key: child.key
+          thumbnailUrl:  child.val().thumbnailUrl,
+          description:  child.val().description,
+          url: child.val().url,
+          latitude: child.val().latitude,
+          longitude: child.val().longitude,
+          telefono: child.val().telefono,
+          via: child.val().via,
+          orario: child.val().orario
         });
       });
 
@@ -78,18 +79,18 @@ class Firebase extends React.Component {
     this.listenForItems(this.itemsRef);
   }
 
+//<StatusBar title="My Favourites Places" />
 
   render() {
     return (
       <View style={styles.container}>
-
-        <StatusBar title="My favourites Places" />
-
         <ListView
           dataSource={this.state.dataSource}
           renderRow={this._renderItem.bind(this)}
           enableEmptySections={true}
-          style={styles.listview}/>
+          style={styles.listview}
+        />
+
 
         <ActionButton onPress={this._addItem.bind(this)} title="Add" />
 
@@ -97,10 +98,13 @@ class Firebase extends React.Component {
     )
   }
 
-  _handlePress = () =>{
-    const { navigate } = this.props.navigation;
-    navigate('Info');
-  }
+_handlePress = () =>{
+  () => navigate('Info');
+  //const { navigate } = this.props.navigation;
+  //navigate('Info');
+  //this.props.navigation.navigate('Info');
+}
+
 
   _addItem() {
     AlertIOS.prompt(
@@ -111,7 +115,7 @@ class Firebase extends React.Component {
         {
           text: 'Add',
           onPress: (text) => {
-            this.itemsRef.push({ title: text })
+            this.itemsRef.push({ title: text})
           }
         },
       ],
@@ -119,8 +123,8 @@ class Firebase extends React.Component {
     );
   }
 
-  _renderItem(item) {
 
+  _renderItem(item) {
 
     const onPress = () => {
       AlertIOS.alert(
@@ -134,35 +138,64 @@ class Firebase extends React.Component {
       );
     };
 
+    const{navigate}=this.props.navigation;
     return (
-      //<ListItem item={item} onPress={this._handlePress} />
-        <ListItem item={item} onPress={onPress} />
+       <ListItem item={item} onPress={() => navigate('Info', item)} />
     );
   }
 
 }
 
-class InfoScreen extends React.Component {
-  static navigationOptions = {title: 'Info',};
+class Details extends React.Component {
+  static navigationOptions = {title: 'Details of Restaurant',};
+
   render() {
+    const {state} = this.props.navigation;
     return (
-      <View style={styles.container}>
-
-        <StatusBar title="Info Place" />
-
+      <View style={styles.container} >
+        <StatusBar title={state.params.title} />
+        <Image source={{uri:state.params.thumbnailUrl }}
+        style={styles.avatar2}   resizeMode="contain" />
+        <StatusBar title="Description"/>
+        <Text style={styles.liText}>{ state.params.description}</Text>
+        <StatusBar title="Indirizzo" />
+        <Text style={styles.liText}>{ state.params.via}</Text>
+        <StatusBar title="Telefono" />
+        <Text style={styles.liText}>{ state.params.telefono}</Text>
+        <StatusBar title="Orario" />
+        <Text style={styles.liText}>{ state.params.orario}</Text>
+        <Button
+          onPress={() =>
+          Linking.openURL(state.params.url)}
+          title="Go to website"
+        />
+        <Button title="Go to MAP" onPress={() =>
+        this.props.navigation.navigate('Mp',state.params)}/>
       </View>
     )
   }
-
 }
 
 
-const SimpleApp = StackNavigator({
-    Home: {screen: Firebase  },
-    Info: {screen: InfoScreen },
 
+const style = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingTop: Constants.statusBarHeight
+  }
 });
 
 
-Expo.registerRootComponent(Firebase);
-export default InfoScreen;
+
+
+
+const SimpleApp = StackNavigator({
+    Home: { screen: HomeFire  },
+    Info: {screen: Details },
+    Mp: {screen: Mapa},
+});
+
+
+
+
+Expo.registerRootComponent(SimpleApp);

@@ -35,7 +35,7 @@ var styles = StyleSheet.create({
     borderColor: 'transparent',
     borderWidth: 1,
     justifyContent: 'center',
-    height: 44,
+    height: 20,
     flexDirection: 'row'
   },
   navbarTitle: {
@@ -45,7 +45,7 @@ var styles = StyleSheet.create({
   },
   statusbar: {
     backgroundColor: '#fff',
-    height: 22,
+    height: 5,
   },
   center: {
     textAlign: 'center',
@@ -63,6 +63,19 @@ var styles = StyleSheet.create({
     paddingTop: 14,
     paddingBottom: 16,
   },
+  avatar: {
+    marginLeft: 230,
+    width: 50,
+    height: 50,
+    borderRadius: 20,
+  },
+  avatar2: {
+    marginLeft: 80,
+    width: 200,
+    height: 200,
+    //borderRadius: 50,
+  },
+
 })
 
 module.exports = styles
