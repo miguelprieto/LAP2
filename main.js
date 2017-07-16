@@ -15,7 +15,6 @@ import cacheAssetsAsync from './utilities/cacheAssetsAsync';
 const { ListView, StyleSheet, Text, View, TouchableHighlight,
   AlertIOS, Image, Button,Linking, Dimensions} = ReactNative;
 
-var items = [];
 
 var config = {
     apiKey: "AIzaSyDLpzGQIOR8ikZ208vTO2aErrY5RTTYEoA",
@@ -52,10 +51,10 @@ class HomeFire extends React.Component {
     itemsRef.on('value', (snap) => {
 
       // get children as an array
-      //var items = [];
+      var items = [];
       snap.forEach((child) => {
         items.push({
-          //_key: child.key,
+          _key: child.key,
           title: child.val().title,
           thumbnailUrl:  child.val().thumbnailUrl,
           description:  child.val().description,
@@ -98,11 +97,8 @@ class HomeFire extends React.Component {
     )
   }
 
-_handlePress = () =>{
-  () => navigate('Info');
-  //const { navigate } = this.props.navigation;
-  //navigate('Info');
-  //this.props.navigation.navigate('Info');
+_handlePress = (item) => {
+  this.props.navigation.navigate('Info',item);
 }
 
 
@@ -131,7 +127,7 @@ _handlePress = () =>{
         'More actions',
         null,
         [
-          {text: 'Information', onPress:(text) => this._handlePress },
+          {text: 'Information', onPress:(text) => this._handlePress(item) },
           {text: 'Remove', onPress: (text) => this.itemsRef.child(item._key).remove()},
           {text: 'Cancel', onPress: (text) => console.log('Cancelled')}
         ]
@@ -140,11 +136,12 @@ _handlePress = () =>{
 
     const{navigate}=this.props.navigation;
     return (
-       <ListItem item={item} onPress={() => navigate('Info', item)} />
+       <ListItem item={item} onPress={onPress} />
     );
   }
 
 }
+//() => navigate('Info', item)
 
 class Details extends React.Component {
   static navigationOptions = {title: 'Details of Restaurant',};
