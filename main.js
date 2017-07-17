@@ -1,19 +1,20 @@
 'use strict';
 import Expo from 'expo';
-import { Constants, MapView } from 'expo';
-import React, {Component} from 'react';
+import { Constants, MapView,ViewPropTypes } from 'expo';
+import React, {Component } from 'react';
 import ReactNative from 'react-native';
 import * as firebase from 'firebase';
 const StatusBar = require('./components/StatusBar');
 const ActionButton = require('./components/ActionButton');
-const ListItem = require('./components/ListItem');
+const Details = require('./components/Details')
 const Mapa = require('./components/Mapa');
+const AddList = require('./components/AddList');
 const styles = require('./styles.js')
 import { AppRegistry,} from 'react-native';
 import { StackNavigator } from 'react-navigation';
 import cacheAssetsAsync from './utilities/cacheAssetsAsync';
-const { ListView, StyleSheet, Text, View, TouchableHighlight,
-  AlertIOS, Image, Button,Linking, Dimensions} = ReactNative;
+const { ListView, StyleSheet, Text, TextInput, View, TouchableHighlight,
+   TouchableNativeFeedback, AlertIOS, Image, Button,Linking, Dimensions} = ReactNative;
 
 
 var config = {
@@ -24,7 +25,7 @@ var config = {
     storageBucket: "",
     messagingSenderId: "119560845918"
   };
-  const firebaseApp=firebase.initializeApp(config);
+const firebaseApp=firebase.initializeApp(config);
 
 
 class HomeFire extends React.Component {
@@ -78,9 +79,8 @@ class HomeFire extends React.Component {
     this.listenForItems(this.itemsRef);
   }
 
-//<StatusBar title="My Favourites Places" />
-
   render() {
+    const{navigate}=this.props.navigation;
     return (
       <View style={styles.container}>
         <ListView
@@ -90,109 +90,48 @@ class HomeFire extends React.Component {
           style={styles.listview}
         />
 
-
-        <ActionButton onPress={this._addItem.bind(this)} title="Add" />
+        <ActionButton  onPress={() => navigate('Add',this.itemsRef )} title="Add" />
 
       </View>
     )
   }
 
-_handlePress = (item) => {
-  this.props.navigation.navigate('Info',item);
-}
-
-
-  _addItem() {
-    AlertIOS.prompt(
-      'Add New Item',
-      null,
-      [
-        {text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
-        {
-          text: 'Add',
-          onPress: (text) => {
-            this.itemsRef.push({ title: text})
-          }
-        },
-      ],
-      'plain-text'
-    );
-  }
-
-
   _renderItem(item) {
+
+     const _handlePress = () => {
+      this.props.navigation.navigate('Info',item);
+    }
+
 
     const onPress = () => {
       AlertIOS.alert(
-        'More actions',
+        'Are you sure you want to remove this place?',
         null,
         [
-          {text: 'Information', onPress:(text) => this._handlePress(item) },
+          //{text: 'Information', onPress:(text) => this._handlePress(item) },
           {text: 'Remove', onPress: (text) => this.itemsRef.child(item._key).remove()},
           {text: 'Cancel', onPress: (text) => console.log('Cancelled')}
         ]
       );
     };
 
-    const{navigate}=this.props.navigation;
-    return (
-       <ListItem item={item} onPress={onPress} />
-    );
+        return (
+          <TouchableHighlight onPress={_handlePress} onLongPress={onPress}  >
+            <View style={styles.li}>
+              <Text style={styles.liText}>{item.title}</Text>
+              <Image source={{uri:item.thumbnailUrl }} style={styles.avatar}/>
+            </View>
+          </TouchableHighlight>
+        );
   }
-
-}
-//() => navigate('Info', item)
-
-class Details extends React.Component {
-  static navigationOptions = {title: 'Details of Restaurant',};
-
-  render() {
-    const {state} = this.props.navigation;
-    return (
-      <View style={styles.container} >
-        <StatusBar title={state.params.title} />
-        <Image source={{uri:state.params.thumbnailUrl }}
-        style={styles.avatar2}   resizeMode="contain" />
-        <StatusBar title="Description"/>
-        <Text style={styles.liText}>{ state.params.description}</Text>
-        <StatusBar title="Indirizzo" />
-        <Text style={styles.liText}>{ state.params.via}</Text>
-        <StatusBar title="Telefono" />
-        <Text style={styles.liText}>{ state.params.telefono}</Text>
-        <StatusBar title="Orario" />
-        <Text style={styles.liText}>{ state.params.orario}</Text>
-        <Button
-          onPress={() =>
-          Linking.openURL(state.params.url)}
-          title="Go to website"
-        />
-        <Button title="Go to MAP" onPress={() =>
-        this.props.navigation.navigate('Mp',state.params)}/>
-      </View>
-    )
-  }
-}
-
-
-
-const style = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingTop: Constants.statusBarHeight
-  }
-});
-
-
-
+}//final class
 
 
 const SimpleApp = StackNavigator({
     Home: { screen: HomeFire  },
     Info: {screen: Details },
     Mp: {screen: Mapa},
+    Add: {screen: AddList},
 });
-
-
-
 
 Expo.registerRootComponent(SimpleApp);
